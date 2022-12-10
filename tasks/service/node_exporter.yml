@@ -1,0 +1,150 @@
+---
+- hosts: 127.0.0.1
+  become: yes
+
+  vars_prompt:
+  - name: arch
+    prompt: "Choose architecture (386, amd64, arm64, armv7, armv6)"
+    private: no
+
+  vars_files:
+    - ../../defaults/main.yml
+
+  vars:
+    service_name: "node_exporter"
+    user: "{{ node_exporter.user.name }}"
+    group: "{{ node_exporter.group.name }}"
+    start_command: "{{ node_exporter.install_dir }}/node_exporter/node_exporter"
+    startup: "y"
+
+  tasks:
+    - name: Check if other node_exporter instance exists
+      stat:
+        path: "{{ node_exporter.install_dir }}/node_exporter"
+      register: old_node_exporter
+
+    - name: Remove old node_exporter instance
+      file:
+        path: "{{ node_exporter.install_dir }}/node_exporter"
+        state: absent
+      when: old_node_exporter.stat.exists
+
+    - name: "Download node_exporter {{ node_exporter.version }}"
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter.version }}/node_exporter-{{ node_exporter.version }}.linux-{{ arch }}.tar.gz"
+        dest: "{{ node_exporter.install_dir }}"
+        checksum: "sha256:{{ node_exporter.sha256sum }}"
+      register: node_exporter_download_result
+
+    - name: "Unarchive node_exporter {{ node_exporter.version }} package"
+      unarchive:
+        src: "{{ node_exporter_download_result.dest }}"
+        dest: "{{ node_exporter.install_dir }}"
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: "Remove package {{ node_exporter_download_result.dest }}"
+      file:
+        path: "{{ node_exporter_download_result.dest }}"
+        state: absent
+
+    - name: "Move node_exporter files to installation directory {{ node_exporter.install_dir }}/node_exporter"
+      command: "mv {{ node_exporter.install_dir }}/node_exporter-{{ node_exporter.version }}.linux-{{ arch }} {{ node_exporter.install_dir}}/node_exporter"
+
+#  service.yml (1/2) START
+
+    - name: "Create {{ service_name }} group"
+      group:
+        name: "{{ group }}"
+
+    - name: "Create {{ service_name }} user"
+      user:
+        name: "{{ user }}"
+        shell: /bin/false
+        group: "{{ group }}"
+        create_home: false
+
+    - name: "Check if {{ service_name }}.service file exists"
+      stat:
+       path: "/lib/systemd/system/{{ service_name }}.service"
+      register: old_service_file
+
+    - name: "Remove old {{ service_name }}.service file"
+      file:
+       path: "/lib/systemd/system/{{ service_name }}.service"
+       state: absent
+      when: old_service_file.stat.exists
+
+    - name: "Check if /etc/init.d/{{ service_name }} file exists"
+      stat:
+        path: "/etc/init.d/{{ service_name }}"
+      register: old_init_script
+
+    - name: "Remove old /etc/init.d/{{ service_name }} file"
+      file:
+       path: "/etc/init.d/{{ service_name }}"
+       state: absent
+      when: old_init_script.stat.exists
+
+    - name: Create systemd {{ service_name }}.service file
+      template:
+        src: ../../templates/service/template.service
+        dest: "/lib/systemd/system/{{ service_name }}.service"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: 0744
+
+    - name: "Add {{ service_name }}.service to autostart"
+      file:
+        src: "/lib/systemd/system/{{ service_name }}.service"
+        dest: "/etc/systemd/system{{ service_name }}.service"
+        state: link
+        force: yes
+        owner: "{{ user }}"
+        group: "{{ group }}"
+      when: startup == "y"
+
+    - name: "Create /etc/init.d/{{ service_name }} script"
+      template:
+        src: ../../templates/service/template.init.sh
+        dest: /etc/init.d/{{ service_name }}
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: 0744
+
+    - name: reload system daemons
+      command:
+        cmd: systemctl daemon-reload
+
+#  service.yml (1/2) STOP
+
+    - name: "Set permissions on {{ node_exporter.install_dir }}/node_exporter"
+      file:
+        path: "{{ node_exporter.install_dir }}/node_exporter"
+        state: directory
+        mode: 0755
+        recurse: true
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: "Set permissions on {{ node_exporter.install_dir }}/node_exporter/node_exporter"
+      file:
+        path: "{{ node_exporter.install_dir }}/node_exporter/node_exporter"
+        state: file
+        mode: 0755
+
+#  service.yml (2/2) START
+
+    - name: "Enable {{ service_name }}.service"
+      systemd:
+        name: "{{ service_name }}.service"
+        enabled: true
+      when: startup == "y"
+
+    - name: "Start {{ service_name }}.service"
+      systemd:
+        name: "{{ service_name }}.service"
+        state: started
+
+#  service.yml (2/2) STOP

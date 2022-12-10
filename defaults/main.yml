@@ -6,6 +6,6 @@ node_exporter:
   user:
     name: "node_exporter"
     uid: "3000"
-    group:
-      name: "node_exporter"
-      gid: "3000"
+  group:
+    name: "node_exporter"
+    gid: "3000"
