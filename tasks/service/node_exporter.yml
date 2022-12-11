@@ -105,14 +105,6 @@
         group: "{{ group }}"
       when: startup == "y"
 
-    - name: "Create /etc/init.d/{{ service_name }} script"
-      template:
-        src: "{{ template.init }}"
-        dest: "/etc/init.d/{{ service_name }}"
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: 0744
-
     - name: reload system daemons
       command:
         cmd: systemctl daemon-reload
@@ -146,5 +138,13 @@
       systemd:
         name: "{{ service_name }}.service"
         state: started
+
+    - name: "Create /etc/init.d/{{ service_name }} script"
+      template:
+        src: "{{ template.init }}"
+        dest: "/etc/init.d/{{ service_name }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: 0744
 
 #  service.yml (2/2) STOP
