@@ -1,7 +1,10 @@
 ---
 - hosts: 127.0.0.1
   become: yes
-
+  
+  vars_files:
+    - ../../defaults/main.yml
+    
   vars_prompt:
   - name: service_name
     prompt: "Name of service"
