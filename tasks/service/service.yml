@@ -1,9 +1,6 @@
 ---
 - hosts: 127.0.0.1
   become: yes
-  
-  vars_files:
-    - ../../defaults/main.yml
     
   vars_prompt:
   - name: service_name
@@ -21,6 +18,9 @@
   - name: startup
     prompt: "Run this service on host startup? (y/n)"
     private: no
+ 
+  vars_files:
+  - ../../defaults/main.yml
 
   tasks:
     - name: "Create {{ service_name }} group"
