@@ -1,6 +1,6 @@
 template:
   service: "../../templates/service/template.service"
-  init: "../../templates/service/init.sh"
+  init: "../../templates/service/template.init.sh"
 
 node_exporter:
   version: "1.5.0"
