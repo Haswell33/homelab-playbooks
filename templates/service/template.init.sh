@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVICE_NAME={{ service_name }}
+SERVICE_NAME="{{ service_name }}"
 
 function START {
     echo "Starting ${SERVICE_NAME}..."

@@ -9,6 +9,7 @@ User={{ user }}
 Group={{ group }}
 ExecStart={{ start_command }}
 SyslogIdentifier={{ service_name }}
+Environment="{{ environment }}"
 Restart=always
 RestartSec=1
 

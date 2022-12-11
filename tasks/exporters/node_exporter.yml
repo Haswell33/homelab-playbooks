@@ -14,6 +14,7 @@
     service_name: "node_exporter"
     user: "{{ node_exporter.user.name }}"
     group: "{{ node_exporter.group.name }}"
+    environment: ""
     start_command: "{{ node_exporter.install_dir }}/node_exporter/node_exporter"
     startup: "y"
 

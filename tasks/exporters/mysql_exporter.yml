@@ -1,0 +1,38 @@
+---
+- hosts: 127.0.0.1
+  become: yes
+
+  vars_prompt:
+  - name: arch
+    prompt: "Choose architecture (386, amd64, arm64, armv7, armv6)"
+    private: no
+
+  vars_files:
+    - ../../defaults/main.yml
+
+  vars:
+    service_name: "mysql_exporter"
+    user: "{{ mysql_exporter.user.name }}"
+    group: "{{ mysql_exporter.group.name }}"
+    environment: ""
+    start_command: |
+      {{ mysql_exporter.install_dir }}/mysql_exporter/mysqld_exporter \
+      --config.my-cnf {{ mysql_exporter.install_dir }}/mysql_exporter/.mysql_exporter.cnf \
+      --collect.global_status \
+      --collect.info_schema.innodb_metrics \
+      --collect.auto_increment.columns \
+      --collect.info_schema.processlist \
+      --collect.binlog_size \
+      --collect.mysql.user \
+      --collect.info_schema.tablestats \
+      --collect.global_variables \
+      --collect.info_schema.query_response_time \
+      --collect.info_schema.userstats \
+      --collect.info_schema.tables \
+      --collect.perf_schema.tablelocks \
+      --collect.perf_schema.file_events \
+      --collect.perf_schema.eventswaits \
+      --collect.perf_schema.indexiowaits \
+      --collect.perf_schema.tableiowaits \
+      --collect.perf_schema.memory_events
+    startup: "y"

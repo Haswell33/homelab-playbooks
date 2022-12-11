@@ -15,6 +15,9 @@
   - name: start_command
     prompt: "Command which need to be executed to start process"
     private: no
+  - name: environment
+    prompt: "Environment (optional)"
+    private: no
   - name: startup
     prompt: "Run this service on host startup? (y/n)"
     private: no

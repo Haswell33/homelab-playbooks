@@ -1,0 +1,19 @@
+---
+- hosts: 127.0.0.1
+  become: yes
+
+  vars_prompt:
+  - name: arch
+    prompt: "Choose architecture (386, amd64, arm64, armv7, armv6)"
+    private: no
+
+  vars_files:
+    - ../../defaults/main.yml
+
+  vars:
+    service_name: "postgres_exporter"
+    user: "{{ postgres_exporter.user.name }}"
+    group: "{{ postgres_exporter.group.name }}"
+    environment: ""
+    start_command: "{{ postgres_exporter.install_dir }}/postgres_exporter/postgres_exporter"
+    startup: "y"
