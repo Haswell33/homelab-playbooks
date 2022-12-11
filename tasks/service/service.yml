@@ -27,8 +27,8 @@
     - name: "Create {{ service_name }} user"
       user:
         name: "{{ user }}"
-        shell: /bin/false
         group: "{{ group }}"
+        shell: /bin/false
         create_home: false
 
     - name: "Check if {{ service_name }}.service file exists"
@@ -55,7 +55,7 @@
 
     - name: Create systemd {{ service_name }}.service file
       template:
-        src: ../../templates/service/template.service
+        src: {{ template.service }}
         dest: "/lib/systemd/system/{{ service_name }}.service"
         owner: "{{ user }}"
         group: "{{ group }}"
@@ -73,7 +73,7 @@
 
     - name: "Create /etc/init.d/{{ service_name }} script"
       template:
-        src: ../../templates/service/template.init.sh
+        src: {{ template.init }}
         dest: /etc/init.d/{{ service_name }}
         owner: "{{ user }}"
         group: "{{ group }}"
