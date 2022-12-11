@@ -20,23 +20,23 @@
   tasks:
     - name: Check if other node_exporter instance exists
       stat:
-        path: "{{ node_exporter.install_dir }}/node_exporter"
+        path: "{{ node_exporter.install_dir }}/{{ service_name }}"
       register: old_node_exporter
 
     - name: Remove old node_exporter instance
       file:
-        path: "{{ node_exporter.install_dir }}/node_exporter"
+        path: "{{ node_exporter.install_dir }}/{{ service_name }}"
         state: absent
       when: old_node_exporter.stat.exists
 
-    - name: "Download node_exporter {{ node_exporter.version }}"
+    - name: "Download {{ service_name }} {{ node_exporter.version }}"
       get_url:
-        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter.version }}/node_exporter-{{ node_exporter.version }}.linux-{{ arch }}.tar.gz"
+        url: "https://github.com/prometheus/{{ service_name }}/releases/download/v{{ node_exporter.version }}/{{ service_name }}-{{ node_exporter.version }}.linux-{{ arch }}.tar.gz"
         dest: "{{ node_exporter.install_dir }}"
         checksum: "sha256:{{ node_exporter.sha256sum }}"
       register: node_exporter_download_result
 
-    - name: "Unarchive node_exporter {{ node_exporter.version }} package"
+    - name: "Unarchive {{ service_name }} {{ node_exporter.version }} package"
       unarchive:
         src: "{{ node_exporter_download_result.dest }}"
         dest: "{{ node_exporter.install_dir }}"
@@ -49,8 +49,8 @@
         path: "{{ node_exporter_download_result.dest }}"
         state: absent
 
-    - name: "Move node_exporter files to installation directory {{ node_exporter.install_dir }}/node_exporter"
-      command: "mv {{ node_exporter.install_dir }}/node_exporter-{{ node_exporter.version }}.linux-{{ arch }} {{ node_exporter.install_dir}}/node_exporter"
+    - name: "Move {{ service_name }} files to installation directory {{ node_exporter.install_dir }}/{{ service_name }}"
+      command: "mv {{ node_exporter.install_dir }}/{{ service_name }}-{{ node_exporter.version }}.linux-{{ arch }} {{ node_exporter.install_dir}}/{{ service_name }}"
 
 #  service.yml (1/2) START
 
@@ -119,18 +119,18 @@
 
 #  service.yml (1/2) STOP
 
-    - name: "Set permissions on {{ node_exporter.install_dir }}/node_exporter"
+    - name: "Set permissions on {{ node_exporter.install_dir }}/{{ service_name }}"
       file:
-        path: "{{ node_exporter.install_dir }}/node_exporter"
+        path: "{{ node_exporter.install_dir }}/{{ service_name }}"
         state: directory
         mode: 0755
         recurse: true
         owner: "{{ user }}"
         group: "{{ group }}"
 
-    - name: "Set permissions on {{ node_exporter.install_dir }}/node_exporter/node_exporter"
+    - name: "Set permissions on {{ node_exporter.install_dir }}/{{ service_name }}/node_exporter"
       file:
-        path: "{{ node_exporter.install_dir }}/node_exporter/node_exporter"
+        path: "{{ node_exporter.install_dir }}/{{ service_name }}/node_exporter"
         state: file
         mode: 0755
 
